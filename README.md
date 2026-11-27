@@ -1,10 +1,18 @@
 # ViewLab · Algoritmo do Valentão
 
-Simulador didático da eleição de líder em uma rede totalmente conectada de 16 nós. Todos reconhecem o nó 16 como líder até sua falha permanente. O nó escolhido detecta a falha no instante lógico zero e inicia a eleição.
+## Executar no GitHub Pages
+
+Após a publicação, abra o [simulador no GitHub Pages](https://gersoncavalheiro.github.io/IPPD-ViewLab/), escolha o nó iniciador e clique em **Iniciar**.
+
+Para publicar, abra as [configurações do GitHub Pages](https://github.com/GersonCavalheiro/IPPD-ViewLab/settings/pages). Em **Build and deployment**, escolha **Deploy from a branch**, selecione a branch `main` e a pasta `/(root)` e clique em **Save**.
+
+## Executar localmente
+
+Como alternativa, [baixe o ZIP do repositório](https://github.com/GersonCavalheiro/IPPD-ViewLab/archive/refs/heads/main.zip), extraia os arquivos e abra o `index.html` no navegador. A aplicação funciona offline.
 
 ## Como usar
 
-Abra [index.html](index.html) diretamente no navegador. A aplicação funciona offline e usa HTML, CSS, SVG e JavaScript puro.
+O simulador representa uma rede totalmente conectada de 16 nós. Todos reconhecem o nó 16 como líder até sua falha permanente. O nó escolhido detecta a falha no instante lógico zero e inicia a eleição.
 
 1. Escolha o nó iniciador entre 1 e 15.
 2. Clique em **Iniciar** para reproduzir automaticamente ou em **Passo** para processar um evento por vez desde a falha do líder.
