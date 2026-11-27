@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Simulador didático do Algoritmo do Valentão para eleição de líder em 16 nós.">
+  <title>Algoritmo do Valentão | ViewLab</title>
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="message.js"></script>
+  <script defer src="node.js"></script>
+  <script defer src="statistics.js"></script>
+  <script defer src="simulator.js"></script>
+  <script defer src="playback.js"></script>
+  <script defer src="visualization.js"></script>
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#simulacao">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" width="24" height="24">
+            <path d="M16 7 7 22h18L16 7Z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="16" cy="7" r="3" fill="currentColor"/>
+            <circle cx="7" cy="22" r="3" fill="currentColor"/>
+            <circle cx="25" cy="22" r="3" fill="currentColor"/>
+          </svg>
+        </span>
+        <span>ViewLab</span>
+      </a>
+      <nav aria-label="Seções do simulador">
+        <a href="#simulacao">Simulação</a>
+        <a href="#registro">Registro</a>
+        <a href="#analise">Análise</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section id="simulacao" aria-labelledby="title">
+      <div class="intro">
+        <p class="eyebrow">Sistemas distribuídos</p>
+        <h1 id="title">Algoritmo do Valentão</h1>
+        <p>Simule a eleição de um novo líder em uma rede de 16 nós após a falha do nó 16.</p>
+      </div>
+
+      <div class="card controls" role="group" aria-label="Controles da simulação">
+        <label class="field" for="initiator">Nó iniciador
+          <select id="initiator"></select>
+        </label>
+        <div class="actions">
+          <button id="start" type="button" class="primary"><span aria-hidden="true">▶</span> Iniciar</button>
+          <button id="pause" type="button" disabled><span aria-hidden="true">Ⅱ</span> Pausar</button>
+          <button id="step" type="button"><span aria-hidden="true">▷▏</span> Passo</button>
+          <button id="reset" type="button" disabled><span aria-hidden="true">↺</span> Reiniciar</button>
+        </div>
+        <label class="field speed-field" for="speed">Velocidade
+          <select id="speed">
+            <option value="0.25">0,25×</option>
+            <option value="0.5">0,5×</option>
+            <option value="1" selected>1×</option>
+            <option value="1.5">1,5×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
+        <div class="clock"><span>Relógio lógico</span><strong id="clock">0 <small>u.t.</small></strong></div>
+      </div>
+
+      <div class="workspace">
+        <section class="network" aria-labelledby="network-title">
+          <div class="network-heading">
+            <div>
+              <h2 id="network-title">Rede distribuída</h2>
+              <p>16 nós · Rede totalmente conectada</p>
+            </div>
+            <span class="network-status" id="simulation-status" data-status="idle" role="status">Pronta</span>
+          </div>
+          <svg id="network" viewBox="140 0 440 430" aria-labelledby="network-description">
+            <title id="network-description">Rede interativa. Selecione um nó para ver seu estado e seus contadores.</title>
+          </svg>
+          <div class="legend" aria-label="Legenda da rede">
+            <ul aria-label="Estados dos nós">
+              <li><i class="dot normal"></i> Normal</li>
+              <li><i class="dot initiator"></i> Iniciador</li>
+              <li><i class="dot electing"></i> Em eleição</li>
+              <li><i class="dot waiting"></i> Aguardando</li>
+              <li><i class="dot leader"></i> Líder</li>
+              <li><i class="dot failed"></i> Falho</li>
+            </ul>
+            <ul aria-label="Tipos e desfechos das mensagens">
+              <li><i class="marker election"></i> ELECTION</li>
+              <li><i class="marker ok"></i> OK</li>
+              <li><i class="marker coordinator"></i> COORDINATOR</li>
+              <li><i class="outcome delivered" aria-hidden="true"></i> Entregue</li>
+              <li><i class="outcome dropped" aria-hidden="true">×</i> Descartada</li>
+            </ul>
+          </div>
+        </section>
+
+        <aside class="side-panels" aria-label="Mensagens e informações do nó">
+          <section class="card metrics" aria-labelledby="metrics-title">
+            <div class="metrics-heading">
+              <h2 id="metrics-title">Mensagens enviadas</h2>
+              <strong class="total" id="total">0</strong>
+            </div>
+            <dl class="message-counts">
+              <div><dt><i class="marker election"></i> ELECTION</dt><dd id="count-ELECTION">0</dd></div>
+              <div><dt><i class="marker ok"></i> OK</dt><dd id="count-OK">0</dd></div>
+              <div><dt><i class="marker coordinator"></i> COORDINATOR</dt><dd id="count-COORDINATOR">0</dd></div>
+            </dl>
+            <dl class="delivery-counts">
+              <div><dt>Entregues</dt><dd id="delivered">0</dd></div>
+              <div><dt>Descartadas</dt><dd id="dropped">0</dd></div>
+              <div><dt>Em trânsito</dt><dd id="in-transit">0</dd></div>
+            </dl>
+          </section>
+
+          <section class="card inspector" aria-labelledby="inspector-title">
+            <div class="section-heading">
+              <div>
+                <h2 id="inspector-title">Nó <span id="node-id">1</span></h2>
+                <p>Inspeção do nó selecionado</p>
+              </div>
+              <span class="node-badge" id="node-state" data-state="normal">Normal</span>
+            </div>
+            <dl class="node-facts">
+              <div><dt>Líder conhecido</dt><dd id="node-leader">16</dd></div>
+              <div><dt>Respostas OK</dt><dd id="node-responders">—</dd></div>
+            </dl>
+            <table class="node-counts">
+              <thead><tr><th scope="col">Mensagem</th><th scope="col">Enviadas</th><th scope="col">Recebidas</th></tr></thead>
+              <tbody id="node-counts"></tbody>
+            </table>
+            <p class="node-timers" id="node-timers"></p>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section class="card history" id="registro" aria-labelledby="history-title">
+      <div class="section-heading">
+        <div>
+          <h2 id="history-title">Registro de eventos</h2>
+          <p id="event-count">Nenhum evento registrado</p>
+        </div>
+        <button id="export" type="button" title="Exportar o histórico completo" disabled>Exportar CSV</button>
+      </div>
+      <div class="filters" role="group" aria-label="Filtros do registro">
+        <label class="field" for="filter-node">Nó<select id="filter-node"><option value="">Todos os nós</option></select></label>
+        <label class="field" for="filter-message">Mensagem<select id="filter-message"><option value="">Todas as mensagens</option></select></label>
+        <label class="field" for="filter-event">Evento<select id="filter-event"><option value="">Todos os eventos</option></select></label>
+      </div>
+      <div class="history-scroll" id="history-scroll" tabindex="0" role="region" aria-label="Tabela do registro de eventos">
+        <table>
+          <thead><tr>
+            <th scope="col">#</th><th scope="col">Tempo</th><th scope="col">Evento</th>
+            <th scope="col">Origem</th><th scope="col">Destino</th><th scope="col">Mensagem</th>
+            <th scope="col">Descrição</th>
+          </tr></thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="analysis" id="analise" aria-labelledby="analysis-title">
+      <h2 id="analysis-title">Resultados e análise teórica</h2>
+      <div class="analysis-grid">
+        <section class="card results" aria-labelledby="results-title">
+          <div class="section-heading">
+            <div><h3 id="results-title">Resultado da eleição</h3><p id="results-status" role="status">Aguardando a simulação</p></div>
+          </div>
+          <div id="result-summary" hidden>
+            <dl class="result-details" id="result-details"></dl>
+            <table class="comparison">
+              <thead><tr><th scope="col">Mensagens</th><th scope="col">Observado</th><th scope="col">Teórico</th></tr></thead>
+              <tbody id="comparison-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="card theory" aria-labelledby="theory-title">
+          <div class="section-heading">
+            <div>
+              <h3 id="theory-title">Custo por nó iniciador</h3>
+              <p>Total teórico = (16 − k)² + 14, em que k é o nó iniciador.</p>
+            </div>
+            <strong class="chart-selection" id="chart-selection"></strong>
+          </div>
+          <div class="chart" id="chart" role="img"></div>
+          <p class="axis-title">Nó iniciador (k)</p>
+        </section>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
